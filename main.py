@@ -25,10 +25,22 @@ class TravelQuery(BaseModel):
 def plan_trip(query: TravelQuery):
     flights_raw = get_flights(query.origin, query.destination, query.start_date)
     flights_summary = summarize_flights(flights_raw)
+    
+    # Create a readable summary string
+    summary_lines = []
+    for f in flights_summary:
+        summary_lines.append(
+            f"{f['departure_airport']} at {f['departure_time']} → {f['arrival_airport']} at {f['arrival_time']}, Duration {f['duration']}, Price {f['price']} EUR"
+        )
+    summary_text = "\n".join(summary_lines)
+    
+    message = f"Trip for {query.name or 'guest'} from {query.origin} to {query.destination} planned.\nHere are the flight options:\n{summary_text}"
+    
     return {
         "flights": flights_summary,
-        "message": f"Trip for {query.name or 'guest'} from {query.origin} to {query.destination} planned."
+        "message": message
     }
+
 
 # Custom OpenAPI generator – to be called AFTER routes are registered
 def custom_openapi():
