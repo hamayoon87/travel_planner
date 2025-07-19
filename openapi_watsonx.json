@@ -133,7 +133,7 @@
   },
   "servers": [
     {
-    "url": "https://travel-planner.onrender.com",
+    "url": "https://travel-planner-2dy9.onrender.com",
     "description": "Render deployment"
    }
   ]

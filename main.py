@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
-from travel import get_flights
+from travel import get_flights, summarize_flights
 from fastapi.openapi.utils import get_openapi
 import json
 
@@ -23,9 +23,10 @@ class TravelQuery(BaseModel):
 # Register your route
 @app.post("/plan-trip", summary="Plan full trip", response_description="Combined travel info")
 def plan_trip(query: TravelQuery):
-    flights = get_flights(query.origin, query.destination, query.start_date)
+    flights_raw = get_flights(query.origin, query.destination, query.start_date)
+    flights_summary = summarize_flights(flights_raw)
     return {
-        "flights": flights,
+        "flights": flights_summary,
         "message": f"Trip for {query.name or 'guest'} from {query.origin} to {query.destination} planned."
     }
 

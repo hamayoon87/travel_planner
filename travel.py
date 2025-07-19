@@ -14,41 +14,21 @@ def get_flights(origin, destination, date):
     res = requests.get(url, headers=headers, params=params)
     return res.json()
 
-def get_hotels(city_code, checkin_date, checkout_date):
-    token = get_amadeus_token()
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    # Lookup geo coordinates
-    geo = get_hotel_location(city_code)
-    
-    url = "https://test.api.amadeus.com/v3/shopping/hotel-offers"
-    params = {
-        "latitude": geo["latitude"],
-        "longitude": geo["longitude"],
-        "checkInDate": checkin_date,
-        "checkOutDate": checkout_date,
-        "adults": 1
-    }
-    res = requests.get(url, headers=headers, params=params)
-    res.raise_for_status()
-    return res.json()
 
-
-def get_train_schedule(from_city, to_city, date):
-    try:
-        from_eva = get_station_eva_number("Berlin Hbf")
-        to_eva = get_station_eva_number("Munich Hbf")
-    except Exception as e:
-        return {"error": str(e)}
-
-    date_str = date.replace("-", "")  # Format: YYYYMMDD
-    hour = "00"  # Could be customized
-    headers = get_db_headers()
-    station_name = "Berlin Hbf"  # instead of BER
-    url = "https://api.deutschebahn.com/stada/v2/stations?searchstring={station_name}"
-
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        return {"error": f"Timetable fetch failed: {res.text}"}
-
-    return res.text
+def summarize_flights(flights_json):
+    summary = []
+    for flight in flights_json.get("data", []):
+        itinerary = flight["itineraries"][0]
+        segments = itinerary["segments"]
+        dep = segments[0]["departure"]
+        arr = segments[-1]["arrival"]
+        price = flight["price"]["total"]
+        summary.append({
+            "departure_airport": dep["iataCode"],
+            "departure_time": dep["at"],
+            "arrival_airport": arr["iataCode"],
+            "arrival_time": arr["at"],
+            "duration": itinerary["duration"],
+            "price": price,
+        })
+    return summary
